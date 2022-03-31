@@ -28,8 +28,8 @@ fn main() {
             if c.is_ascii_alphabetic() {
                 let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
                 if matches.len() == 0 {
-                        tries -= 1;
-                        println!("Wrong ! {} remaining mistakes", tries);
+                    tries -= 1;
+                    println!("Wrong ! {} remaining mistakes", tries);
                 } else {
                     for i in matches {
                         word_guess.replace_range(
@@ -63,10 +63,7 @@ fn main() {
 fn check_win(word: &str, word_guess: &String) -> bool {
     let word_guess = word_guess.lines().next().unwrap().to_string(); // trim trailing newline, OS agnostic
     if word == word_guess {
-        println!(
-            "\nYou win ! Complete word is: {}",
-            word.to_uppercase()
-        );
+        println!("\nYou win ! Complete word is: {}", word.to_uppercase());
         return true;
     }
     false
@@ -77,7 +74,6 @@ fn test_check_win() {
     assert_eq!(check_win(&"win", &"win".to_string()), true);
     assert_eq!(check_win(&"win", &"loose".to_string()), false);
 }
-
 
 fn get_lib<'a>() -> Vec<&'a str> {
     vec![
