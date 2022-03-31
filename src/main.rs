@@ -20,7 +20,7 @@ fn main() {
             .expect("Failure to read user input");
 
         // Enable complete-word guessing
-        if check_win(word, &guess) {
+        if game_is_won(word, &guess) {
             break;
         }
 
@@ -41,7 +41,7 @@ fn main() {
                             &c.to_string(),
                         );
                     }
-                    if check_win(word, &word_guess) {
+                    if game_is_won(word, &word_guess) {
                         break;
                     }
                 }
@@ -60,7 +60,7 @@ fn main() {
     }
 }
 
-fn check_win(word: &str, word_guess: &String) -> bool {
+fn game_is_won(word: &str, word_guess: &String) -> bool {
     let word_guess = word_guess.lines().next().unwrap().to_string(); // trim trailing newline, OS agnostic
     if word == word_guess {
         println!("\nYou win ! Complete word is: {}", word.to_uppercase());
@@ -70,9 +70,9 @@ fn check_win(word: &str, word_guess: &String) -> bool {
 }
 
 #[test]
-fn test_check_win() {
-    assert_eq!(check_win(&"win", &"win".to_string()), true);
-    assert_eq!(check_win(&"win", &"loose".to_string()), false);
+fn test_game_is_won() {
+    assert_eq!(game_is_won(&"win", &"win".to_string()), true);
+    assert_eq!(game_is_won(&"win", &"loose".to_string()), false);
 }
 
 fn get_lib<'a>() -> Vec<&'a str> {
