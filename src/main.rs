@@ -20,7 +20,6 @@ fn main() {
             .expect("Failure to read user input");
 
         // Enable complete-word guessing
-        guess = guess.lines().next().unwrap().to_string(); // remove trailing newline, platform agnostic
         if check_win(word, &guess) {
             break;
         }
@@ -62,6 +61,7 @@ fn main() {
 }
 
 fn check_win(word: &str, word_guess: &String) -> bool {
+    let word_guess = word_guess.lines().next().unwrap().to_string(); // trim trailing newline, OS agnostic
     if word == word_guess {
         println!(
             "\nYou win ! Complete word is: {}",
