@@ -1,9 +1,14 @@
 use rand::Rng;
-use std::io::{self, Write};
-use std::str;
+use std::{
+    self,
+    fs::File,
+    io::{self, prelude::*, BufReader},
+    path::Path,
+    str,
+};
 
 fn main() {
-    let library = get_lib();
+    let library = get_lib("library.txt");
     let word = get_word(library);
     let mut word_guess = str::repeat("_", word.len());
 
@@ -20,7 +25,7 @@ fn main() {
             .expect("Failure to read user input");
 
         // Enable complete-word guessing
-        if game_is_won(word, &guess) {
+        if game_is_won(&word, &guess) {
             break;
         }
 
@@ -41,7 +46,7 @@ fn main() {
                             &c.to_string(),
                         );
                     }
-                    if game_is_won(word, &word_guess) {
+                    if game_is_won(&word, &word_guess) {
                         break;
                     }
                 }
@@ -60,8 +65,8 @@ fn main() {
     }
 }
 
-fn game_is_won(word: &str, word_guess: &String) -> bool {
-    let word_guess = word_guess.lines().next().unwrap().to_string(); // trim trailing newline, OS agnostic
+fn game_is_won(word: &String, word_guess: &String) -> bool {
+    let word_guess = word_guess.lines().next().unwrap(); // trim trailing newline, OS agnostic
     if word == word_guess {
         println!("\nYou win ! Complete word is: {}", word.to_uppercase());
         return true;
@@ -71,53 +76,18 @@ fn game_is_won(word: &str, word_guess: &String) -> bool {
 
 #[test]
 fn test_game_is_won() {
-    assert_eq!(game_is_won(&"win", &"win".to_string()), true);
-    assert_eq!(game_is_won(&"win", &"loose".to_string()), false);
+    assert_eq!(game_is_won(&"win".to_string(), &"win".to_string()), true);
+    assert_eq!(game_is_won(&"win".to_string(), &"loose".to_string()), false);
 }
 
-fn get_lib<'a>() -> Vec<&'a str> {
-    vec![
-        "absolument",
-        "abominable",
-        "annulation",
-        "assassiner",
-        "attirant",
-        "balancier",
-        "beneficier",
-        "bijouterie",
-        "clarinette",
-        "decoration",
-        "ecologiste",
-        "entraineur",
-        "facultatif",
-        "fracassant",
-        "galanterie",
-        "guitariste",
-        "hippocampe",
-        "inegalable",
-        "journalier",
-        "mecanicien",
-        "menuiserie",
-        "modulable",
-        "ondulation",
-        "pirouette",
-        "rearranger",
-        "recomposer",
-        "rectiligne",
-        "sagittaire",
-        "salutation",
-        "sanctuaire",
-        "sectoriser",
-        "simulateur",
-        "strasbourg",
-        "torrentiel",
-        "utilitaire",
-        "vandaliser",
-        "verbaliser",
-        "vibratoire",
-    ]
+fn get_lib(filename: impl AsRef<Path>) -> Vec<String> {
+    let file = File::open(filename).expect("no such file");
+    let buf = BufReader::new(file);
+    buf.lines()
+        .map(|l| l.expect("Could not parse line"))
+        .collect()
 }
 
-fn get_word(library: Vec<&str>) -> &str {
-    library[rand::thread_rng().gen_range(0..library.len())]
+fn get_word(mut library: Vec<String>) -> String {
+    library.swap_remove(rand::thread_rng().gen_range(0..library.len()))
 }
