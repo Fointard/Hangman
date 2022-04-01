@@ -13,7 +13,7 @@ fn main() {
     let mut tries: usize;
     let mut guess = String::new();
 
-    loop {
+    'game: loop {
         guess.clear();
         tries = 10;
         let word = get_word(&library);
@@ -27,6 +27,10 @@ fn main() {
             io::stdin()
                 .read_line(&mut guess)
                 .expect("Failure to read user input");
+
+            if guess.starts_with("quit") {
+                break 'game;
+            }
 
             // Enable complete-word guessing
             if game_is_won(&word, &guess) {
