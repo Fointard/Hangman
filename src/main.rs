@@ -9,58 +9,63 @@ use std::{
 
 fn main() {
     let library = get_lib("library.txt");
-    let word = get_word(library);
-    let mut word_guess = str::repeat("_", word.len());
-
-    let mut tries: usize = 10usize;
+    let mut word_guess;
+    let mut tries: usize;
     let mut guess = String::new();
 
     loop {
-        println!("\n{}", word_guess);
-        print!("Your guess: ");
-        io::stdout().flush().unwrap();
+        guess.clear();
+        tries = 10;
+        let word = get_word(&library);
+        word_guess = str::repeat("_", word.len());
 
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failure to read user input");
+        loop {
+            println!("\n{}", word_guess);
+            print!("Your guess: ");
+            io::stdout().flush().unwrap();
 
-        // Enable complete-word guessing
-        if game_is_won(&word, &guess) {
-            break;
-        }
+            io::stdin()
+                .read_line(&mut guess)
+                .expect("Failure to read user input");
 
-        if let Some(c) = guess.to_lowercase().chars().take(1).last() {
-            if c.is_ascii_alphabetic() {
-                let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
-                if matches.len() == 0 {
-                    tries -= 1;
-                    println!("Wrong ! {} remaining mistakes", tries);
-                } else {
-                    for i in matches {
-                        word_guess.replace_range(
-                            word_guess
-                                .char_indices()
-                                .nth(i)
-                                .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-                                .unwrap(),
-                            &c.to_string(),
-                        );
-                    }
-                    if game_is_won(&word, &word_guess) {
-                        break;
-                    }
-                }
-            } else {
-                println!("Not an alphabetic char, try again");
+            // Enable complete-word guessing
+            if game_is_won(&word, &guess) {
+                break;
             }
-            guess.clear();
-        } else {
-            println!("Not a char");
-        }
 
-        if tries == 0 {
-            println!("\nYou lose !");
-            break;
+            if let Some(c) = guess.to_lowercase().chars().take(1).last() {
+                if c.is_ascii_alphabetic() {
+                    let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
+                    if matches.len() == 0 {
+                        tries -= 1;
+                        println!("Wrong ! {} remaining mistakes", tries);
+                    } else {
+                        for i in matches {
+                            word_guess.replace_range(
+                                word_guess
+                                    .char_indices()
+                                    .nth(i)
+                                    .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
+                                    .unwrap(),
+                                &c.to_string(),
+                            );
+                        }
+                        if game_is_won(&word, &word_guess) {
+                            break;
+                        }
+                    }
+                } else {
+                    println!("Not an alphabetic char, try again");
+                }
+                guess.clear();
+            } else {
+                println!("Not a char");
+            }
+
+            if tries == 0 {
+                println!("\nYou lose !");
+                break;
+            }
         }
     }
 }
@@ -88,6 +93,6 @@ fn get_lib(filename: impl AsRef<Path>) -> Vec<String> {
         .collect()
 }
 
-fn get_word(mut library: Vec<String>) -> String {
-    library.swap_remove(rand::thread_rng().gen_range(0..library.len()))
+fn get_word(library: &Vec<String>) -> &String {
+    &library[rand::thread_rng().gen_range(0..library.len())]
 }
