@@ -1,3 +1,6 @@
+mod hangederror;
+
+use hangederror::{HangedError, Result};
 use rand::Rng;
 use std::{
     self,
@@ -7,8 +10,8 @@ use std::{
     str,
 };
 
-fn main() {
-    let library = get_lib("library.txt");
+fn main() -> Result<()> {
+    let library = get_lib("library.txt")?;
     let mut word_guess;
     let mut tries: usize;
     let mut guess = String::new();
@@ -22,14 +25,14 @@ fn main() {
         loop {
             println!("\n{}", word_guess);
             print!("Your guess: ");
-            io::stdout().flush().unwrap();
+            io::stdout().flush().map_err(|_| HangedError::Flushing)?;
 
             io::stdin()
                 .read_line(&mut guess)
-                .expect("Failure to read user input");
+                .map_err(|_| HangedError::LineReading)?;
 
             if guess.starts_with("quit") {
-                break 'game;
+                break 'game Ok(());
             }
 
             // Enable complete-word guessing
@@ -89,11 +92,11 @@ fn test_game_is_won() {
     assert_eq!(game_is_won(&"win".to_string(), &"loose".to_string()), false);
 }
 
-fn get_lib(filename: impl AsRef<Path>) -> Vec<String> {
-    let file = File::open(filename).expect("no such file");
-    let buf = BufReader::new(file);
-    buf.lines()
-        .map(|l| l.expect("Could not parse line"))
+fn get_lib(filename: impl AsRef<Path>) -> Result<Vec<String>> {
+    let file = File::open(filename).map_err(|_| HangedError::FileOpening)?;
+    BufReader::new(file)
+        .lines()
+        .map(|l| l.map_err(|_| HangedError::LineParsing))
         .collect()
 }
 
