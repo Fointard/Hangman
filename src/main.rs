@@ -92,6 +92,28 @@ fn analyse_user_input(guess: &mut String, word: &String, word_guess: &mut String
     }
 }
 
+#[test]
+fn test_analyse_user_input() {
+    let word = "verylongword".to_string();
+    let mut word_guess = "____________".to_string();
+    let mut tries = 2;
+
+    let mut guess = "l".to_string();
+    analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
+    assert_eq!(word_guess, "____l_______");
+    assert_eq!(tries, 2);
+
+    guess = "v".to_string();
+    analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
+    assert_eq!(word_guess, "v___l_______");
+    assert_eq!(tries, 2);
+
+    guess = "z".to_string();
+    analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
+    assert_eq!(word_guess, "v___l_______");
+    assert_eq!(tries, 1);
+}
+
 fn game_is_won(word: &String, word_guess: &String) -> bool {
     let word_guess = word_guess.lines().next().unwrap(); // trim trailing newline, OS agnostic
     if word == word_guess {
