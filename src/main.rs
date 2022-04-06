@@ -11,38 +11,40 @@ use std::{
 fn main() -> Result<()> {
     let library = get_lib("library.txt")?;
     let mut guess = String::new();
-    let mut tries: usize;
-    let mut word_guess;
     let mut score = (0, 0);
+    let mut word_guess;
+    let mut tries;
 
     'game: loop {
         tries = 10;
         let word = get_word(&library);
         word_guess = str::repeat("_", word.len());
 
-        if true == loop {
-            ask_user_input(&word_guess, &mut guess)?;
+        if true
+            == loop {
+                ask_user_input(&word_guess, &mut guess)?;
 
-            if guess.starts_with("quit") {
-                break 'game Ok(());
+                if guess.starts_with("quit") {
+                    break 'game Ok(());
+                }
+
+                // Word-based guessing
+                if game_is_won(&word, &guess) {
+                    break true;
+                }
+
+                analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
+
+                // Char-based guessing
+                if game_is_won(&word, &word_guess) {
+                    break true;
+                }
+
+                if game_is_lost(&tries) {
+                    break false;
+                }
             }
-
-            // Word-based guessing
-            if game_is_won(&word, &guess) {
-                break true;
-            }
-
-            analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
-
-            // Char-based guessing
-            if game_is_won(&word, &word_guess) {
-                break true;
-            }
-
-            if game_is_lost(&tries) {
-                break false;
-            }
-        } {
+        {
             score.0 += 1;
         } else {
             score.1 += 1;
@@ -65,7 +67,12 @@ fn ask_user_input(word_guess: &String, guess: &mut String) -> Result<()> {
     Ok(())
 }
 
-fn analyse_user_input(guess: &mut String, word: &String, word_guess: &mut String, tries: &mut usize) {
+fn analyse_user_input(
+    guess: &mut String,
+    word: &String,
+    word_guess: &mut String,
+    tries: &mut usize,
+) {
     if let Some(c) = guess.to_lowercase().chars().take(1).last() {
         if c.is_ascii_alphabetic() {
             let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
