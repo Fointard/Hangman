@@ -10,68 +10,79 @@ use std::{
 
 fn main() -> Result<()> {
     let library = get_lib("library.txt")?;
-    let mut word_guess;
-    let mut tries: usize;
     let mut guess = String::new();
+    let mut tries: usize;
+    let mut word_guess;
 
     'game: loop {
-        guess.clear();
         tries = 10;
         let word = get_word(&library);
         word_guess = str::repeat("_", word.len());
 
         loop {
-            println!("\n{}", word_guess);
-            print!("Your guess: ");
-            io::stdout().flush().with_context(|| "Can't flush")?;
-
-            io::stdin()
-                .read_line(&mut guess)
-                .with_context(|| "Can't read line")?;
+            ask_user_input(&word_guess, &mut guess)?;
 
             if guess.starts_with("quit") {
                 break 'game Ok(());
             }
 
-            // Enable complete-word guessing
+            // Word-based guessing
             if game_is_won(&word, &guess) {
                 break;
             }
 
-            if let Some(c) = guess.to_lowercase().chars().take(1).last() {
-                if c.is_ascii_alphabetic() {
-                    let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
-                    if matches.len() == 0 {
-                        tries -= 1;
-                        println!("Wrong ! {} remaining mistakes", tries);
-                    } else {
-                        for i in matches {
-                            word_guess.replace_range(
-                                word_guess
-                                    .char_indices()
-                                    .nth(i)
-                                    .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
-                                    .unwrap(),
-                                &c.to_string(),
-                            );
-                        }
-                        if game_is_won(&word, &word_guess) {
-                            break;
-                        }
-                    }
-                } else {
-                    println!("Not an alphabetic char, try again");
-                }
-                guess.clear();
-            } else {
-                println!("Not a char");
+            analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
+
+            // Char-based guessing
+            if game_is_won(&word, &word_guess) {
+                break;
             }
 
-            if tries == 0 {
-                println!("\nYou lose !");
+            if game_is_lost(&tries) {
                 break;
             }
         }
+
+        guess.clear();
+    }
+}
+
+fn ask_user_input(word_guess: &String, guess: &mut String) -> Result<()> {
+    println!("\n{}", word_guess);
+    print!("Your guess: ");
+    io::stdout().flush().with_context(|| "Can't flush")?;
+
+    io::stdin()
+        .read_line(guess)
+        .with_context(|| "Can't read line")?;
+
+    Ok(())
+}
+
+fn analyse_user_input(guess: &mut String, word: &String, word_guess: &mut String, tries: &mut usize) {
+    if let Some(c) = guess.to_lowercase().chars().take(1).last() {
+        if c.is_ascii_alphabetic() {
+            let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
+            if matches.len() == 0 {
+                *tries -= 1;
+                println!("Wrong ! {} remaining mistakes", tries);
+            } else {
+                for i in matches {
+                    word_guess.replace_range(
+                        word_guess
+                            .char_indices()
+                            .nth(i)
+                            .map(|(pos, ch)| (pos..pos + ch.len_utf8()))
+                            .unwrap(),
+                        &c.to_string(),
+                    );
+                }
+            }
+        } else {
+            println!("Not an alphabetic char, try again");
+        }
+    } else {
+        println!("Not a char");
     }
 }
 
@@ -88,6 +99,20 @@ fn game_is_won(word: &String, word_guess: &String) -> bool {
 fn test_game_is_won() {
     assert_eq!(game_is_won(&"win".to_string(), &"win".to_string()), true);
     assert_eq!(game_is_won(&"win".to_string(), &"loose".to_string()), false);
+}
+
+fn game_is_lost(tries: &usize) -> bool {
+    if *tries == 0 {
+        println!("\nYou lose !");
+        return true;
+    }
+    false
+}
+
+#[test]
+fn test_game_is_lost() {
+    assert_eq!(game_is_lost(&0), true);
+    assert_eq!(game_is_lost(&7), false);
 }
 
 fn get_lib(filename: impl AsRef<Path>) -> Result<Vec<String>> {
