@@ -1,6 +1,4 @@
-mod hangederror;
-
-use hangederror::{HangedError, Result};
+use anyhow::{Context, Result};
 use rand::Rng;
 use std::{
     self,
@@ -25,11 +23,11 @@ fn main() -> Result<()> {
         loop {
             println!("\n{}", word_guess);
             print!("Your guess: ");
-            io::stdout().flush().map_err(|_| HangedError::Flushing)?;
+            io::stdout().flush().with_context(|| "Can't flush")?;
 
             io::stdin()
                 .read_line(&mut guess)
-                .map_err(|_| HangedError::LineReading)?;
+                .with_context(|| "Can't read line")?;
 
             if guess.starts_with("quit") {
                 break 'game Ok(());
@@ -93,10 +91,10 @@ fn test_game_is_won() {
 }
 
 fn get_lib(filename: impl AsRef<Path>) -> Result<Vec<String>> {
-    let file = File::open(filename).map_err(|_| HangedError::FileOpening)?;
+    let file = File::open(filename).with_context(|| "Can't open file")?;
     BufReader::new(file)
         .lines()
-        .map(|l| l.map_err(|_| HangedError::LineParsing))
+        .map(|l| l.with_context(|| "Can't parse line into word"))
         .collect()
 }
 
