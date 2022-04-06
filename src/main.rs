@@ -13,13 +13,14 @@ fn main() -> Result<()> {
     let mut guess = String::new();
     let mut tries: usize;
     let mut word_guess;
+    let mut score = (0, 0);
 
     'game: loop {
         tries = 10;
         let word = get_word(&library);
         word_guess = str::repeat("_", word.len());
 
-        loop {
+        if true == loop {
             ask_user_input(&word_guess, &mut guess)?;
 
             if guess.starts_with("quit") {
@@ -28,26 +29,31 @@ fn main() -> Result<()> {
 
             // Word-based guessing
             if game_is_won(&word, &guess) {
-                break;
+                break true;
             }
 
             analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
 
             // Char-based guessing
             if game_is_won(&word, &word_guess) {
-                break;
+                break true;
             }
 
             if game_is_lost(&tries) {
-                break;
+                break false;
             }
+        } {
+            score.0 += 1;
+        } else {
+            score.1 += 1;
         }
 
-        guess.clear();
+        println!("won: {}, lost: {}", score.0, score.1);
     }
 }
 
 fn ask_user_input(word_guess: &String, guess: &mut String) -> Result<()> {
+    guess.clear();
     println!("\n{}", word_guess);
     print!("Your guess: ");
     io::stdout().flush().with_context(|| "Can't flush")?;
