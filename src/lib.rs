@@ -8,7 +8,7 @@ use std::{
     str,
 };
 
-fn main() -> Result<()> {
+pub fn play() -> Result<()> {
     let library = get_lib("library.txt")?;
     let mut guess = String::new();
     let mut score = (0, 0);
