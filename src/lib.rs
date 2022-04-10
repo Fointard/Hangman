@@ -1,3 +1,5 @@
+mod score;
+
 use anyhow::{Context, Result};
 use rand::Rng;
 use std::{
@@ -11,7 +13,7 @@ use std::{
 pub fn play() -> Result<()> {
     let library = get_lib("library.txt")?;
     let mut guess = String::new();
-    let mut score = (0, 0);
+    let mut score = score::Score::new();
     let mut word_guess;
     let mut tries;
 
@@ -45,12 +47,12 @@ pub fn play() -> Result<()> {
                 }
             }
         {
-            score.0 += 1;
+            score.win();
         } else {
-            score.1 += 1;
+            score.loose();
         }
 
-        println!("won: {}, lost: {}", score.0, score.1);
+        println!("{}", score);
     }
 }
 
