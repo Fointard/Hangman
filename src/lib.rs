@@ -22,31 +22,29 @@ pub fn play() -> Result<()> {
         let word = get_word(&library);
         word_guess = str::repeat("_", word.len());
 
-        if true
-            == loop {
-                ask_user_input(&word_guess, &mut guess)?;
+        if loop {
+            ask_user_input(&word_guess, &mut guess)?;
 
-                if guess.starts_with("quit") {
-                    break 'game Ok(());
-                }
-
-                // Word-based guessing
-                if game_is_won(&word, &guess) {
-                    break true;
-                }
-
-                analyse_user_input(&mut guess, &word, &mut word_guess, &mut tries);
-
-                // Char-based guessing
-                if game_is_won(&word, &word_guess) {
-                    break true;
-                }
-
-                if game_is_lost(&tries) {
-                    break false;
-                }
+            if guess.starts_with("quit") {
+                break 'game Ok(());
             }
-        {
+
+            // Word-based guessing
+            if game_is_won(word, &guess) {
+                break true;
+            }
+
+            analyse_user_input(&mut guess, word, &mut word_guess, &mut tries);
+
+            // Char-based guessing
+            if game_is_won(word, &word_guess) {
+                break true;
+            }
+
+            if game_is_lost(&tries) {
+                break false;
+            }
+        } {
             score.win();
         } else {
             score.loose();
@@ -56,7 +54,7 @@ pub fn play() -> Result<()> {
     }
 }
 
-fn ask_user_input(word_guess: &String, guess: &mut String) -> Result<()> {
+fn ask_user_input(word_guess: &str, guess: &mut String) -> Result<()> {
     guess.clear();
     println!("\n{}", word_guess);
     print!("Your guess: ");
@@ -69,16 +67,11 @@ fn ask_user_input(word_guess: &String, guess: &mut String) -> Result<()> {
     Ok(())
 }
 
-fn analyse_user_input(
-    guess: &mut String,
-    word: &String,
-    word_guess: &mut String,
-    tries: &mut usize,
-) {
+fn analyse_user_input(guess: &mut str, word: &str, word_guess: &mut String, tries: &mut usize) {
     if let Some(c) = guess.to_lowercase().chars().take(1).last() {
         if c.is_ascii_alphabetic() {
             let matches: Vec<_> = word.match_indices(c).map(|(i, _)| i).collect();
-            if matches.len() == 0 {
+            if matches.is_empty() {
                 *tries -= 1;
                 println!("Wrong ! {} remaining mistakes", tries);
             } else {
@@ -123,7 +116,7 @@ fn test_analyse_user_input() {
     assert_eq!(tries, 1);
 }
 
-fn game_is_won(word: &String, word_guess: &String) -> bool {
+fn game_is_won(word: &str, word_guess: &str) -> bool {
     let word_guess = word_guess.lines().next().unwrap(); // trim trailing newline, OS agnostic
     if word == word_guess {
         println!("\nYou win ! Complete word is: {}", word.to_uppercase());
@@ -160,6 +153,6 @@ fn get_lib(filename: impl AsRef<Path>) -> Result<Vec<String>> {
         .collect()
 }
 
-fn get_word(library: &Vec<String>) -> &String {
+fn get_word(library: &[String]) -> &String {
     &library[rand::thread_rng().gen_range(0..library.len())]
 }
