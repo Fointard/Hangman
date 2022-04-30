@@ -4,14 +4,15 @@ use anyhow::{Context, Result};
 use rand::Rng;
 use std::{
 	self,
+	fmt::Display,
 	fs::File,
 	io::{self, prelude::*, BufReader},
 	path::Path,
 	str,
 };
 
-pub fn play() -> Result<()> {
-	let library = get_lib("library.txt")?;
+pub fn play(library: String) -> Result<()> {
+	let library = get_lib(library)?;
 	let mut guess = String::new();
 	let mut score = score::Score::new();
 	let mut word_guess;
@@ -145,8 +146,9 @@ fn test_game_is_lost() {
 	assert_eq!(game_is_lost(&7), false);
 }
 
-fn get_lib(filename: impl AsRef<Path>) -> Result<Vec<String>> {
-	let file = File::open(filename).with_context(|| "Can't open file")?;
+fn get_lib<T: AsRef<Path> + Display>(filename: T) -> Result<Vec<String>> {
+	let file =
+		File::open(&filename).with_context(|| format!("Can't open file \"{}\"", filename))?;
 	BufReader::new(file)
 		.lines()
 		.map(|l| l.with_context(|| "Can't parse line into word"))
